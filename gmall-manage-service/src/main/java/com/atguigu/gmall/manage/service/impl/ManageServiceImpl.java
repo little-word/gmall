@@ -110,40 +110,39 @@ public class ManageServiceImpl implements ManageService {
     }
 
     /**
-     * 修改商品属性值
-     *
-     * @param attrId
-     * @return
-     */
-    @Override
-    public List<BaseAttrValue> getAttrValueList(String attrId) {
-        BaseAttrValue baseAttrValue1 = new BaseAttrValue();
-        baseAttrValue1.setAttrId(attrId);
-        List<BaseAttrValue> baseAttrValueList = baseAttrValueMapper.select(baseAttrValue1);
-        return baseAttrValueList;
-    }
-
-    /**
-     * 修改商品属性值（课件）
+     * 修改商品属性值--不完整
      *
      * @param attrId
      * @return
      */
 //    @Override
-//    public List<BaseAttrValue> getAttrInfo(String attrId) {
-//        // List<BaseAttrValue>  老师的返回对象
-//
-//        //创建属性对象
-//        BaseAttrInfo attrInfo = baseAttrInfoMapper.selectByPrimaryKey(attrId);
-//        // 创建属性值对象
-//        BaseAttrValue baseAttrValue = new BaseAttrValue();
-//        // 根据attrId字段查询对象
-//        baseAttrValue.setAttrId(attrInfo.getId());
-//        List<BaseAttrValue> attrValueList = baseAttrValueMapper.select(baseAttrValue);
-//        // 给属性对象中的属性值集合赋值
-//        attrInfo.setAttrValueList(attrValueList);
-//        // 将属性对象返回
-//        return attrInfo;
-//
+//    public List<BaseAttrValue> getAttrValueList(String attrId) {
+//        BaseAttrValue baseAttrValue1 = new BaseAttrValue();
+//        baseAttrValue1.setAttrId(attrId);
+//        List<BaseAttrValue> baseAttrValueList = baseAttrValueMapper.select(baseAttrValue1);
+//        return baseAttrValueList;
 //    }
+
+    /**
+     * 修改商品属性值--功能完整
+     *
+     * @param attrId
+     * @return
+     */
+    @Override
+    public BaseAttrInfo getAttrInfo(String attrId) {
+
+        //创建属性对象
+        BaseAttrInfo attrInfo = baseAttrInfoMapper.selectByPrimaryKey(attrId);
+        // 创建属性值对象
+        BaseAttrValue baseAttrValue = new BaseAttrValue();
+        // 根据attrId字段查询对象
+        baseAttrValue.setAttrId(attrInfo.getId());
+        List<BaseAttrValue> attrValueList = baseAttrValueMapper.select(baseAttrValue);
+        // 给属性对象中的属性值集合赋值
+        attrInfo.setAttrValueList(attrValueList);
+        // 将属性对象返回
+        return attrInfo;
+
+    }
 }
