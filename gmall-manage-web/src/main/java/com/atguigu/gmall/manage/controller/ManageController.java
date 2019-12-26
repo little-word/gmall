@@ -68,23 +68,23 @@ public class ManageController {
     public void  saveAttrInfo(@RequestBody BaseAttrInfo baseAttrInfo){
         manageService.saveAttrInfo(baseAttrInfo);
     }
-//    /**
-//     * 修改商品属性值（课件）
-//     */
-//    @RequestMapping(value = "/getAttrValueList",method = RequestMethod.POST)
-//    public List<BaseAttrValue> getAttrValueList(String attrId){
-//        BaseAttrInfo attrInfo = manageService.getAttrInfo(attrId);
-//
-//       // return  manageService.getAttrValueList(attrId);
-//        return attrInfo.getAttrValueList();
-//    }
     /**
-     * 修改商品属性值
+     * 修改商品属性值（完整）
      */
     @RequestMapping(value = "/getAttrValueList",method = RequestMethod.POST)
     public List<BaseAttrValue> getAttrValueList(String attrId){
+        BaseAttrInfo attrInfo = manageService.getAttrInfo(attrId);
 
-        return manageService.getAttrValueList(attrId);
+       // return  manageService.getAttrValueList(attrId);
+        return attrInfo.getAttrValueList();
     }
+    /**
+     * 修改商品属性值-- 不完整
+     */
+//    @RequestMapping(value = "/getAttrValueList",method = RequestMethod.POST)
+//    public List<BaseAttrValue> getAttrValueList(String attrId){
+//
+//        return manageService.getAttrValueList(attrId);
+//    }
 
 }
