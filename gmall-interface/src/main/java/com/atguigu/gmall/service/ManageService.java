@@ -41,12 +41,12 @@ public interface ManageService {
 //    选中准修改数据 ， 根据该attrId 去查找AttrInfo，该对象下 List<BaseAttrValue> ！
 //    所以在返回的时候，需要返回BaseAttrInfo。
     /**
-     * 修改商品属性值（课件）
+     * 修改商品属性值（完整）
      */
-   // BaseAttrInfo getAttrInfo(String attrId);
+    BaseAttrInfo getAttrInfo(String attrId);
 
     /**
-     * 修改商品属性值
+     * 修改商品属性值--不完整
      */
-    List<BaseAttrValue> getAttrValueList(String attrId);
+  //  List<BaseAttrValue> getAttrValueList(String attrId);
 }
