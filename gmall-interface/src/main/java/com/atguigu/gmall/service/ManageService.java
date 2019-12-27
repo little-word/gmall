@@ -20,7 +20,7 @@ public interface ManageService {
 
     /**
      * 根据二级分类ID获取三级分类
-     * @param catalog1Id
+     * @param catalog2Id
      * @return
      */
     List<BaseCatalog3> getCatalog3(String catalog2Id);
