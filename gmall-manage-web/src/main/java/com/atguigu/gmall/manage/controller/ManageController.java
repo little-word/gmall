@@ -27,6 +27,7 @@ public class ManageController {
      */
     @RequestMapping("/getCatalog1")
     public List<BaseCatalog1> getCatalog1(){
+
         return  manageService.getCatalog1();
     }
     /**
