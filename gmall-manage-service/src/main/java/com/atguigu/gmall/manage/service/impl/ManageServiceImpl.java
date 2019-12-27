@@ -16,7 +16,6 @@ import java.util.List;
 
 //dubbo服务端
 @Service
-
 public class ManageServiceImpl implements ManageService {
 
 
