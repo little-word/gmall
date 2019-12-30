@@ -17,6 +17,8 @@ public interface ManageService {
      * @return
      */
     List<BaseCatalog2> getCatalog2(String catalog1Id);
+    //方法的重载 功能 一样 代码更加简洁
+    List<BaseCatalog2> getCatalog2(BaseCatalog2 baseCatalog2);
 
     /**
      * 根据二级分类ID获取三级分类
@@ -37,6 +39,10 @@ public interface ManageService {
      * 添加商品属性两张表
      */
     void  saveAttrInfo(BaseAttrInfo baseAttrInfo);
+    /**
+     * 修改商品属性值--不完整
+     */
+    //  List<BaseAttrValue> getAttrValueList(String attrId);
 
 //    选中准修改数据 ， 根据该attrId 去查找AttrInfo，该对象下 List<BaseAttrValue> ！
 //    所以在返回的时候，需要返回BaseAttrInfo。
@@ -46,7 +52,43 @@ public interface ManageService {
     BaseAttrInfo getAttrInfo(String attrId);
 
     /**
-     * 修改商品属性值--不完整
+     * 获取商品的Spu  展示详情
+     *   List<SpuInfo> getSpuInfoList(String catalog3Id);
+     * @param
+     * @return
      */
-  //  List<BaseAttrValue> getAttrValueList(String attrId);
+    List<SpuInfo> getSpuInfoList(SpuInfo spuInfo);
+
+    /**
+     * 回显销售属性
+     * @param
+     */
+    List<BaseSaleAttr> baseSaleAttrList();
+
+    /**
+     * 添加销售属性
+     * @param spuInfo
+     */
+
+    void saveSpuInfo(SpuInfo spuInfo);
+
+    /**
+     * sku显示图片信息
+     * @param spuImage
+     * @return
+     */
+    List<SpuImage> getSpuImageList(SpuImage spuImage);
+
+    /**
+     * SKU显示商品销售属性
+     * @param spuId
+     * @return
+     */
+    List<SpuSaleAttr> spuSaleAttrList(String spuId);
+
+    /**
+     * 保存SKU数据
+     * @param skuInfo
+     */
+    void saveSkuInfo(SkuInfo skuInfo);
 }
