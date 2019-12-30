@@ -34,11 +34,12 @@ public class FileUploadController {
             String configFile = this.getClass().getResource("/tracker.conf").getFile();
             //初始化配置类
             ClientGlobal.init(configFile);
-            //追踪客户端
+            //追踪客户端--用于启动
             TrackerClient trackerClient = new TrackerClient();
 
             //获取连接
             TrackerServer trackerServer = trackerClient.getConnection();
+            //存储的服务
             StorageClient storageClient = new StorageClient(trackerServer, null);
 
             //获取文件名
@@ -46,7 +47,7 @@ public class FileUploadController {
             //截取文件名 用作地址的拼接  后缀名
             String extName = StringUtils.substringAfterLast(filename, ".");
 
-            //拼接地址  file.getBytes() 获取 浏览器的上传地址
+            //拼接地址  file.getBytes() 获取 浏览器的上传地址  用于上传的文件流 file.getBytes()
             String[] upload_file = storageClient.upload_file(file.getBytes(), extName, null);
             imgUrl = fileUrl;
             for (int i = 0; i < upload_file.length; i++) {
