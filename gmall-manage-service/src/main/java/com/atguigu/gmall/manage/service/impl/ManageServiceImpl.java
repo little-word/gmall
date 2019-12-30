@@ -6,9 +6,12 @@ import com.atguigu.gmall.manage.mapper.*;
 import com.atguigu.gmall.service.ManageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author GPX
@@ -303,7 +306,7 @@ public class ManageServiceImpl implements ManageService {
         List<SkuImage> skuImageList = skuInfo.getSkuImageList();
         if (skuImageList != null && skuImageList.size() > 0) {
             for (SkuImage skuImage : skuImageList) {
-                if (skuImage.getId()!=null && skuImage.getId().length()==0){
+                if (skuImage.getId() != null && skuImage.getId().length() == 0) {
                     skuImage.setId(null);
                 }
                 skuImage.setSkuId(skuInfo.getId());
@@ -314,7 +317,7 @@ public class ManageServiceImpl implements ManageService {
         List<SkuAttrValue> skuAttrValueList = skuInfo.getSkuAttrValueList();
         if (skuAttrValueList != null) {
             for (SkuAttrValue skuAttrValue : skuAttrValueList) {
-                if (skuAttrValue.getId()!=null && skuAttrValue.getId().length()==0){
+                if (skuAttrValue.getId() != null && skuAttrValue.getId().length() == 0) {
                     skuAttrValue.setId(null);
                 }
                 // skuId
@@ -327,12 +330,73 @@ public class ManageServiceImpl implements ManageService {
         List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
         if (skuSaleAttrValueList != null && skuSaleAttrValueList.size() > 0) {
             for (SkuSaleAttrValue skuSaleAttrValue : skuSaleAttrValueList) {
-                if (skuSaleAttrValue.getId()!=null && skuSaleAttrValue.getId().length()==0){
+                if (skuSaleAttrValue.getId() != null && skuSaleAttrValue.getId().length() == 0) {
                     skuSaleAttrValue.setId(null);
                 }
                 skuSaleAttrValue.setSkuId(skuInfo.getId());
                 skuSaleAttrValueMapper.insertSelective(skuSaleAttrValue);
             }
         }
+    }
+
+    /**
+     * 静态页面展示sku详情
+     *
+     * @param skuId
+     * @return
+     */
+    @Override
+    public SkuInfo getSkuInfo(String skuId) {
+        SkuInfo skuInfo = null;
+        if (skuId !=null && skuId !=""){
+             skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
+            //获取sku的图片
+            SkuImage skuImage = new SkuImage();
+            skuImage.setSkuId(skuId);
+            //将图片添加到skuInfo 用来前端页面展示
+            List<SkuImage> skuImageList = skuImageMapper.select(skuImage);
+            skuInfo.setSkuImageList(skuImageList);
+        }
+            return skuInfo;
+
+    }
+
+    /**
+     * 前端展示 平台销售属性
+     * @param skuInfo
+     * @return
+     */
+    @Override
+    public List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(SkuInfo skuInfo) {
+
+        return  spuSaleAttrMapper.selectSpuSaleAttrListCheckBySku(skuInfo.getId(),skuInfo.getSpuId());
+
+    }
+
+    /**
+     * 点击其他销售属性值的组合，跳转到另外的sku页面 方式二
+     * @param spuId
+     * @return
+     */
+//    @Override
+//    public Map getSkuValueIdsMap(String spuId) {
+//
+//        List<Map> mapList=skuSaleAttrValueMapper.getSaleAttrValuesBySpu(spuId);
+//        HashMap<Object, Object> hashMap = new HashMap<>();
+//        for (Map map : mapList) {
+//            hashMap.put(map.get("value_ids"),map.get("sku_id"));
+//        }
+//        return hashMap;
+//    }
+
+    /**
+     * 点击其他销售属性值的组合，跳转到另外的sku页面 方式一
+     * @param spuId
+     * @return
+     */
+    @Override
+    public List<SkuSaleAttrValue> getSkuSaleAttrValueListBySpu(String spuId) {
+        List<SkuSaleAttrValue> skuSaleAttrValueList = skuSaleAttrValueMapper.selectSkuSaleAttrValueListBySpu(spuId);
+        return skuSaleAttrValueList;
     }
 }

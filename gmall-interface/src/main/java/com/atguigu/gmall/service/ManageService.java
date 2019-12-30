@@ -3,6 +3,7 @@ package com.atguigu.gmall.service;
 import com.atguigu.gmall.bean.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ManageService {
     /**
@@ -91,4 +92,32 @@ public interface ManageService {
      * @param skuInfo
      */
     void saveSkuInfo(SkuInfo skuInfo);
+
+    /**
+     * 静态页面展示sku详情
+     * @param skuId
+     * @return
+     */
+    SkuInfo getSkuInfo(String skuId);
+
+    /**
+     * 前端展示 平台销售属性
+     * @param skuInfo
+     * @return
+     */
+    List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(SkuInfo skuInfo);
+
+    /**
+     * 点击其他销售属性值的组合，跳转到另外的sku页面 方式二
+     * @param spuId
+     * @return
+     */
+//    Map getSkuValueIdsMap(String spuId);
+
+    /**
+     * 点击其他销售属性值的组合，跳转到另外的sku页面 方式一
+     * @param spuId
+     * @return
+     */
+    List<SkuSaleAttrValue> getSkuSaleAttrValueListBySpu(String spuId);
 }
