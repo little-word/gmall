@@ -449,7 +449,7 @@ public class ManageServiceImpl implements ManageService {
                 //my-lock 自定义 可以改变
                 lock = redisson.getLock("my-lock");
 
-                //上锁时间10最低10s 最高100s
+                //上锁后自动解锁10最低10s 最高100s
                 lock.lock(10, TimeUnit.SECONDS);
 
                 // 从数据库查询数据
