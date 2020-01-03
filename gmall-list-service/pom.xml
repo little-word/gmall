@@ -8,10 +8,11 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../gmall-parent/pom.xml</relativePath>
     </parent>
+
     <groupId>com.atguigu.gmall</groupId>
-    <artifactId>gmall-item-web</artifactId>
+    <artifactId>gmall-list-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>gmall-item-web</name>
+    <name>gmall-list-service</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -24,26 +25,28 @@
             <artifactId>gmall-interface</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>com.atguigu.gmall</groupId>
-            <artifactId>gmall-web-util</artifactId>
+            <artifactId>gmall-service-util</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!--&lt;!&ndash;开启松校验&ndash;&gt;-->
         <!--<dependency>-->
-            <!--<groupId>net.sourceforge.nekohtml</groupId>-->
-            <!--<artifactId>nekohtml</artifactId>-->
+            <!--<groupId>org.springframework.boot</groupId>-->
+            <!--<artifactId>spring-boot-starter-data-elasticsearch</artifactId>-->
         <!--</dependency>-->
 
+        <!--&lt;!&ndash; https://mvnrepository.com/artifact/io.searchbox/jest &ndash;&gt;-->
         <!--<dependency>-->
-            <!--<groupId>xml-apis</groupId>-->
-            <!--<artifactId>xml-apis</artifactId>-->
+            <!--<groupId>io.searchbox</groupId>-->
+            <!--<artifactId>jest</artifactId>-->
         <!--</dependency>-->
 
+        <!--&lt;!&ndash; https://mvnrepository.com/artifact/net.java.dev.jna/jna &ndash;&gt;-->
         <!--<dependency>-->
-            <!--<groupId>org.apache.xmlgraphics</groupId>-->
-            <!--<artifactId>batik-ext</artifactId>-->
+            <!--<groupId>net.java.dev.jna</groupId>-->
+            <!--<artifactId>jna</artifactId>-->
         <!--</dependency>-->
     </dependencies>
 

@@ -6,9 +6,9 @@
     </resultMap>
     <!--<select id="getSaleAttrValuesBySpu" resultMap="spuValueIdsMap">-->
         <!--SELECT sku_id  , GROUP_CONCAT(sale_attr_value_id  ORDER BY sale_attr_value_id ASC   SEPARATOR '|') value_ids-->
-        <!--FROM  `sku_sale_attr_value` sv INNER JOIN  `sku_info` si ON  sv.sku_id=si.id-->
-        <!--WHERE si.spu_id=#{spuId}-->
-        <!--GROUP BY sku_id-->
+    <!--FROM  `sku_sale_attr_value` sv INNER JOIN  `sku_info` si ON  sv.sku_id=si.id-->
+    <!--WHERE si.spu_id=#{spuId}-->
+    <!--GROUP BY sku_id-->
     <!--</select>-->
 
     <select  id ="selectSkuSaleAttrValueListBySpu" resultMap="skuSaleAttrValueMap">

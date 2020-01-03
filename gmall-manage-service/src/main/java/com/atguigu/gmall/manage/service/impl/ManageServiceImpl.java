@@ -1,17 +1,24 @@
 package com.atguigu.gmall.manage.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.*;
+import com.atguigu.gmall.manage.constant.ManageConst;
 import com.atguigu.gmall.manage.mapper.*;
 import com.atguigu.gmall.service.ManageService;
+import com.atguigu.gmall.util.RedisUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import tk.mybatis.mapper.entity.Example;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author GPX
@@ -24,47 +31,49 @@ public class ManageServiceImpl implements ManageService {
 
 
     @Autowired
-    BaseAttrInfoMapper baseAttrInfoMapper;
+    private BaseAttrInfoMapper baseAttrInfoMapper;
 
     @Autowired
-    BaseAttrValueMapper baseAttrValueMapper;
+    private BaseAttrValueMapper baseAttrValueMapper;
 
     @Autowired
-    BaseCatalog1Mapper baseCatalog1Mapper;
+    private BaseCatalog1Mapper baseCatalog1Mapper;
 
     @Autowired
-    BaseCatalog2Mapper baseCatalog2Mapper;
+    private BaseCatalog2Mapper baseCatalog2Mapper;
 
     @Autowired
-    BaseCatalog3Mapper baseCatalog3Mapper;
+    private BaseCatalog3Mapper baseCatalog3Mapper;
 
     @Autowired
-    SpuInfoMapper spuInfoMapper;
+    private SpuInfoMapper spuInfoMapper;
 
     @Resource
-    BaseSaleAttrMapper baseSaleAttrMapper;
+    private BaseSaleAttrMapper baseSaleAttrMapper;
 
     @Autowired
-    SpuImageMapper spuImageMapper;
+    private SpuImageMapper spuImageMapper;
 
     @Autowired
-    SpuSaleAttrValueMapper spuSaleAttrValueMapper;
+    private SpuSaleAttrValueMapper spuSaleAttrValueMapper;
 
     @Autowired
-    SpuSaleAttrMapper spuSaleAttrMapper;
+    private SpuSaleAttrMapper spuSaleAttrMapper;
 
     @Autowired
-    SkuImageMapper skuImageMapper;
+    private SkuImageMapper skuImageMapper;
 
     @Autowired
-    SkuInfoMapper skuInfoMapper;
+    private SkuInfoMapper skuInfoMapper;
 
     @Autowired
-    SkuAttrValueMapper skuAttrValueMapper;
+    private SkuAttrValueMapper skuAttrValueMapper;
 
     @Autowired
-    SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+    private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
 
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Override
     public List<BaseCatalog1> getCatalog1() {
@@ -341,35 +350,174 @@ public class ManageServiceImpl implements ManageService {
 
     /**
      * 静态页面展示sku详情
-     *
+     *使用redis
+     * 解决缓存击穿
      * @param skuId
      * @return
+     * 使用redisson解决分布式锁
      */
     @Override
     public SkuInfo getSkuInfo(String skuId) {
-        SkuInfo skuInfo = null;
-        if (skuId !=null && skuId !=""){
-             skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
-            //获取sku的图片
-            SkuImage skuImage = new SkuImage();
-            skuImage.setSkuId(skuId);
-            //将图片添加到skuInfo 用来前端页面展示
-            List<SkuImage> skuImageList = skuImageMapper.select(skuImage);
-            skuInfo.setSkuImageList(skuImageList);
-        }
-            return skuInfo;
 
+//        SkuInfo skuInfo = null;
+//        try{
+//            Jedis jedis = redisUtil.getJedis();
+//            // 定义key  拼接key-->sku:43:info
+//            String skuInfoKey = ManageConst.SKUKEY_PREFIX+skuId+ManageConst.SKUKEY_SUFFIX; //key= sku:skuId:info
+//              获取json值
+//            String skuJson = jedis.get(skuInfoKey);
+//
+//            if (skuJson==null || skuJson.length()==0){
+//                // 没有数据 ,需要加锁！取出完数据，还要放入缓存中，下次直接从缓存中取得即可！
+//                System.out.println("没有命中缓存");  //走数据库--getSkuInfoDB
+//                // 定义穿透锁 key  key user:userId:lock
+//                String skuLockKey=ManageConst.SKUKEY_PREFIX+skuId+ManageConst.SKULOCK_SUFFIX;
+//             String token = UUID.randomUUID().toString().substring(4, 6).replaceAll("-", "");
+//                // 生成锁  ManageConst.SKULOCK_SUFFIX--睡眠时间
+//                String lockKey  = jedis.set(skuLockKey, token, "NX", "PX",ManageConst.SKULOCK_SUFFIX);
+//                if ("OK".equals(lockKey)){
+//                    System.out.println("获取锁！");
+//                    // 从数据库中取得数据
+//                    skuInfo = getSkuInfoDB(skuId);
+//                    // 将是数据放入缓存
+//                    // 将对象转换成字符串
+//                    String skuRedisStr = JSON.toJSONString(skuInfo);
+//                    jedis.setex(skuInfoKey,ManageConst.SKUKEY_TIMEOUT,skuRedisStr);
+                        //删除锁
+//                   String script ="if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+//                   jedis.eval(script, Collections.singletonList(skuLockKey),Collections.singletonList(token));
+//                    jedis.close();
+//                    return skuInfo;
+//                }else {
+//                      没获取到锁
+//                    System.out.println("等待！");
+//                    // 等待
+//                    Thread.sleep(1000);
+//                    // 自旋 时间一到 调用自己 获取锁
+//                    return getSkuInfo(skuId);
+//                }
+//            }else{
+//                // 查询到缓存
+//                skuInfo = JSON.parseObject(skuJson, SkuInfo.class);
+//                jedis.close();
+//                return skuInfo;
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//        // 从数据库返回数据
+//        return getSkuInfoDB(skuId);
+//    }
+        return getSkuInfoRedisson(skuId);
     }
 
     /**
+     *使用redisson解决分布式锁
+     * @param skuId
+     * @return
+     */
+    private SkuInfo getSkuInfoRedisson(String skuId) {
+        // 业务代码
+        SkuInfo skuInfo =null;
+        RLock lock =null;
+        Jedis jedis =null;
+        try {
+
+            // 测试redis String
+            jedis = redisUtil.getJedis();
+
+            // 定义key  sku:43:info
+            String userKey = ManageConst.SKUKEY_PREFIX+skuId+ManageConst.SKUKEY_SUFFIX;
+            if (jedis.exists(userKey)){
+                // 获取缓存中的数据
+                String userJson = jedis.get(userKey);
+                //获取到数据
+                if (!StringUtils.isEmpty(userJson)){
+                    skuInfo = JSON.parseObject(userJson, SkuInfo.class);
+                    return skuInfo;
+                }
+            }else {
+                // 创建
+                //
+                // 这里使用redission
+                Config config = new Config();
+                // redis://192.168.126.129:6379 配置文件中！  没有集群 使用useSingleServer
+                config.useSingleServer().setAddress("redis://192.168.126.129:6379");
+
+                RedissonClient redisson = Redisson.create(config);
+
+                //my-lock 自定义 可以改变
+                lock = redisson.getLock("my-lock");
+
+                //上锁时间10最低10s 最高100s
+                lock.lock(10, TimeUnit.SECONDS);
+
+                // 从数据库查询数据
+                skuInfo = getSkuInfoDB(skuId);
+                // 将数据放入缓存
+                // jedis.set(userKey,JSON.toJSONString(skuInfo));
+                jedis.setex(userKey,ManageConst.SKUKEY_TIMEOUT,JSON.toJSONString(skuInfo));
+                return skuInfo;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (jedis!=null){
+                jedis.close();
+            }
+            if (lock!=null){
+                lock.unlock();
+            }
+
+        }
+        // 从数据库查询！
+        return getSkuInfoDB(skuId);
+    }
+
+    /**
+     * 从数据库中获取数据
+     * @param skuId
+     * @return
+     */
+    private SkuInfo getSkuInfoDB(String skuId) {
+        //信息
+        SkuInfo skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
+        //获取sku的图片
+        SkuImage skuImage = new SkuImage();
+        skuImage.setSkuId(skuId);
+        //将图片添加到skuInfo 用来前端页面展示
+        List<SkuImage> skuImageList = skuImageMapper.select(skuImage);
+        skuInfo.setSkuImageList(skuImageList);
+
+        // 查询属性值
+        SkuSaleAttrValue skuSaleAttrValue = new SkuSaleAttrValue();
+        skuSaleAttrValue.setSkuId(skuId);
+        List<SkuSaleAttrValue> skuSaleAttrValueList = skuSaleAttrValueMapper.select(skuSaleAttrValue);
+
+        // 将查询出来所有商品属性值赋给对象
+        skuInfo.setSkuSaleAttrValueList(skuSaleAttrValueList);
+        return skuInfo;
+
+
+        // select * from skuInfo where id = skuId;
+        // 通过skuId 将skuImageList 查询出来直接放入skuInfo 对象中！
+//        SkuInfo skuInfo;
+//        skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
+//        skuInfo.setSkuImageList(getSkuImageBySkuId(skuId));
+//        return   skuInfo;
+    }
+
+
+    /**
      * 前端展示 平台销售属性
+     *
      * @param skuInfo
      * @return
      */
     @Override
     public List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(SkuInfo skuInfo) {
 
-        return  spuSaleAttrMapper.selectSpuSaleAttrListCheckBySku(skuInfo.getId(),skuInfo.getSpuId());
+        return spuSaleAttrMapper.selectSpuSaleAttrListCheckBySku(skuInfo.getId(), skuInfo.getSpuId());
 
     }
 
@@ -391,6 +539,7 @@ public class ManageServiceImpl implements ManageService {
 
     /**
      * 点击其他销售属性值的组合，跳转到另外的sku页面 方式一
+     *
      * @param spuId
      * @return
      */

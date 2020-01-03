@@ -13,8 +13,7 @@
 <div id="max">
     <header>
 
-        <input id="valuesSku" type="hidden"  th:value= " ${valuesSkuJson}"  />
-        <input id="skuId" type="hidden"  th:value= " ${skuInfo.id}"  />
+
 
         <div class="min">
             <ul class="header_ul_left">
@@ -250,6 +249,10 @@
                             <!--</dd>-->
                         <!--</dl>-->
                     <!--</div>-->
+
+                    <!--隐藏域 -->
+                    <input id="valuesSku" type="hidden"  th:value= " ${valuesSkuJson}"  />
+                    <input id="skuId" type="hidden"  th:value= " ${skuInfo.id}"  />
                     <div class="box-attr-2 clear" th:each="saleAttrInfo: ${saleAttrList}"  >
                         <dl>
                             <dt th:text="${saleAttrInfo.saleAttrName}" >选择颜色</dt>

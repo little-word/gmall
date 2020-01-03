@@ -28,9 +28,8 @@ public class ItemController {
 
     /**
      * 静态页面展示sku详情
-     *
      * @param skuId
-     * @param
+     * @param request
      * @return
      */
     @RequestMapping("/{skuId}.html")
@@ -44,14 +43,14 @@ public class ItemController {
         List<SpuSaleAttr> saleAttrList = manageService.getSpuSaleAttrListCheckBySku(skuInfo);
         request.setAttribute("saleAttrList", saleAttrList);
 
-        //获取销售属性值Id
+        //获取销售属性值Id  方式一
         List<SkuSaleAttrValue> skuSaleAttrValueListBySpu = manageService.getSkuSaleAttrValueListBySpu(skuInfo.getSpuId());
         //把列表变换成 valueid1|valueid2|valueid3 ：skuId  的 哈希表 用于在页面中定位查询
         String valueIdsKey = "";
 
         Map<String, String> valuesSkuMap = new HashMap<>();
 
-        //难点 目前不清楚
+        //TODO 目前不清楚
         for (int i = 0; i < skuSaleAttrValueListBySpu.size(); i++) {
             SkuSaleAttrValue skuSaleAttrValue = skuSaleAttrValueListBySpu.get(i);
             if (valueIdsKey.length() != 0) {
@@ -60,7 +59,7 @@ public class ItemController {
             //拼接格式 valueIds:125|127
             valueIdsKey = valueIdsKey + skuSaleAttrValue.getSaleAttrValueId();
 
-            //判断数据库中有没有值
+            //判断数据库中有没有值  当前的SKUID与下一个SKUID不一致停止拼接
             if ((i + 1) == skuSaleAttrValueListBySpu.size() || !skuSaleAttrValue.getSkuId().equals(skuSaleAttrValueListBySpu.get(i + 1).getSkuId())) {
 
                 valuesSkuMap.put(valueIdsKey, skuSaleAttrValue.getSkuId());
@@ -71,6 +70,7 @@ public class ItemController {
 
         //把map变成json串
         String valuesSkuJson = JSON.toJSONString(valuesSkuMap);
+        System.out.println(valuesSkuJson);
 
         request.setAttribute("valuesSkuJson", valuesSkuJson);
 
