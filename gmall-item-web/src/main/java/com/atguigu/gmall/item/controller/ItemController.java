@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.SkuInfo;
 import com.atguigu.gmall.bean.SkuSaleAttrValue;
 import com.atguigu.gmall.bean.SpuSaleAttr;
+import com.atguigu.gmall.service.ListService;
 import com.atguigu.gmall.service.ManageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +25,9 @@ import java.util.Map;
 public class ItemController {
     @Reference
     private ManageService manageService;
+
+    @Reference
+    private ListService listService;
 
 
     /**
@@ -77,6 +81,20 @@ public class ItemController {
         //点击其他销售属性值的组合，跳转到另外的sku页面 方式二
 //        Map skuValueIdsMap = manageService.getSkuValueIdsMap(skuInfo.getSpuId());
 //        request.setAttribute("valuesSkuJson", JSON.toJSONString(skuValueIdsMap));
+        //热点数据排序 详情页面
+        listService.incrHotScore(skuId);
         return "item";
     }
+
+    /**
+     * 热点数据排序 详情页面
+     * @param skuId
+     * @return
+     */
+//    @RequestMapping("/{skuId}.html")
+//    public String getSkuInfo(@PathVariable("skuId")String skuId){
+//
+//        //最终应该由异步方式调用
+//        return
+//    }
 }

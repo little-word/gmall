@@ -25,5 +25,13 @@ public class SkuLsInfo implements Serializable {
 
     Long hotScore=0L;
 
+    //List<SkuAttrValue> skuAttrValueList; 与skuInfo 的属性一致 添加时作为key 来保存数据
+//    skuAttrValueList": [
+//    {
+//             "id": "39",
+//            "attrId": "23",
+//            "valueId": "83",
+//            "skuId": "21"
+//    },
     List<SkuLsAttrValue> skuAttrValueList;
 }

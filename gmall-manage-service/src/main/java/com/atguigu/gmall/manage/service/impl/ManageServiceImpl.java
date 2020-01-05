@@ -7,7 +7,7 @@ import com.atguigu.gmall.manage.constant.ManageConst;
 import com.atguigu.gmall.manage.mapper.*;
 import com.atguigu.gmall.service.ManageService;
 import com.atguigu.gmall.util.RedisUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -449,7 +449,7 @@ public class ManageServiceImpl implements ManageService {
                 //my-lock 自定义 可以改变
                 lock = redisson.getLock("my-lock");
 
-                //上锁后自动解锁10最低10s 最高100s
+                //上锁后自动解锁时间10s   最低10s 最长等待时间100s
                 lock.lock(10, TimeUnit.SECONDS);
 
                 // 从数据库查询数据
@@ -493,9 +493,14 @@ public class ManageServiceImpl implements ManageService {
         SkuSaleAttrValue skuSaleAttrValue = new SkuSaleAttrValue();
         skuSaleAttrValue.setSkuId(skuId);
         List<SkuSaleAttrValue> skuSaleAttrValueList = skuSaleAttrValueMapper.select(skuSaleAttrValue);
-
         // 将查询出来所有商品属性值赋给对象
         skuInfo.setSkuSaleAttrValueList(skuSaleAttrValueList);
+
+        //获取skuAttrValue 平台属性用于 es建立索引
+        SkuAttrValue skuAttrValue = new SkuAttrValue();
+        skuAttrValue.setSkuId(skuId);
+        List<SkuAttrValue> skuAttrValueList = skuAttrValueMapper.select(skuAttrValue);
+        skuInfo.setSkuAttrValueList(skuAttrValueList);
         return skuInfo;
 
 
@@ -547,5 +552,17 @@ public class ManageServiceImpl implements ManageService {
     public List<SkuSaleAttrValue> getSkuSaleAttrValueListBySpu(String spuId) {
         List<SkuSaleAttrValue> skuSaleAttrValueList = skuSaleAttrValueMapper.selectSkuSaleAttrValueListBySpu(spuId);
         return skuSaleAttrValueList;
+    }
+
+    /**
+     * DSL  全局查询 返回的属性值集合
+     * @param attrValueIdList
+     * @return
+     */
+    @Override
+    public List<BaseAttrInfo> getAttrList(List<String> attrValueIdList) {
+
+        String valueIds  = StringUtils.join(attrValueIdList.toArray(), ",");
+        return baseAttrInfoMapper.selectAttrInfoListByIds(valueIds);
     }
 }
