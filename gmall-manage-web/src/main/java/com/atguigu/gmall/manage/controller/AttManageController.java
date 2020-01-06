@@ -25,7 +25,11 @@ public class AttManageController {
     @Reference
     private ListService listService;
 
-    //保存数据到es中
+    /**
+     * 保存数据到es中
+     * 上架
+     * @param skuId
+     */
     @RequestMapping(value = "/onSale",method = RequestMethod.GET)
     @ResponseBody
     public void skuLsInfo(String skuId) {
