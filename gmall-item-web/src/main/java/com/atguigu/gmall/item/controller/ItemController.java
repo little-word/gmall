@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.SkuInfo;
 import com.atguigu.gmall.bean.SkuSaleAttrValue;
 import com.atguigu.gmall.bean.SpuSaleAttr;
+import com.atguigu.gmall.config.LoginRequire;
 import com.atguigu.gmall.service.ListService;
 import com.atguigu.gmall.service.ManageService;
 import org.springframework.stereotype.Controller;
@@ -36,6 +37,7 @@ public class ItemController {
      * @param request
      * @return
      */
+    @LoginRequire
     @RequestMapping("/{skuId}.html")
     public String skuInfoPage(@PathVariable(value = "skuId") String skuId, HttpServletRequest request) {
 
@@ -54,7 +56,7 @@ public class ItemController {
 
         Map<String, String> valuesSkuMap = new HashMap<>();
 
-        //TODO 目前不清楚
+        //销售属性值切换
         for (int i = 0; i < skuSaleAttrValueListBySpu.size(); i++) {
             SkuSaleAttrValue skuSaleAttrValue = skuSaleAttrValueListBySpu.get(i);
             if (valueIdsKey.length() != 0) {
@@ -79,8 +81,11 @@ public class ItemController {
         request.setAttribute("valuesSkuJson", valuesSkuJson);
 
         //点击其他销售属性值的组合，跳转到另外的sku页面 方式二
+    //    GROUP_CONCAT：group_concat( [distinct] 要连接的字段 [order by 排序字段 asc/desc ] [separator '分隔符'] )
 //        Map skuValueIdsMap = manageService.getSkuValueIdsMap(skuInfo.getSpuId());
 //        request.setAttribute("valuesSkuJson", JSON.toJSONString(skuValueIdsMap));
+
+
         //热点数据排序 详情页面
         listService.incrHotScore(skuId);
         return "item";

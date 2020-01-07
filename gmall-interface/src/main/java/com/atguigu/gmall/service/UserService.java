@@ -12,9 +12,23 @@ public interface UserService {
 
     /**
      *
-     * 根据用户id查询用胡地址
+     * 根据用户id查询用户地址
      * @param userId
      * @return
      */
     List<UserAddress> getUserAddressByUserId(String userId);
+
+    /**
+     * 生成登录 token
+     * @param userInfo
+     * @return
+     */
+    UserInfo login(UserInfo userInfo);
+
+    /**
+     * 校验Token
+     * @param userId
+     * @return
+     */
+    UserInfo verify(String userId);
 }

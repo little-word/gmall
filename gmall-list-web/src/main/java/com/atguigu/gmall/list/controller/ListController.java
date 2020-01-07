@@ -72,9 +72,10 @@ public class ListController {
                     for (String valueId : skuLsParams.getValueId()) {
                         //选中的属性值 和 查询结果的属性值
                         if (valueId.equals(baseAttrValue.getId())) {
+                            //移除选中的属性 避免重复筛选 错误示范：list.gmall.com/list.html?catalog3Id=61&valueId=14&valueId=14
                             iterator.remove();
-                            //获取面包屑 移除的平台属性值
 
+                            //获取面包屑 移除的平台属性值
                             BaseAttrValue baseAttrValueSelected = new BaseAttrValue();
                             //        "数据" 运行内存:3G ✖ 机身内存:64G ✖  keyword(skuName): baseAttrName:baseAttrValue
                             baseAttrValueSelected.setValueName(baseAttrInfo.getAttrName() + ":" + baseAttrValue.getValueName());
@@ -137,7 +138,9 @@ public class ListController {
             for (String valueId : skuLsParams.getValueId()) {
                 //每次点击平台属性展示对应的面包屑  面包屑功能 展示
                 if (excludeValueIds != null && excludeValueIds.length > 0) {
+                    //筛选条件的回撤
                     String excludeValueId = excludeValueIds[0];
+                    //不能重复 筛选同一个条件  错误示范：list.gmall.com/list.html?catalog3Id=61&valueId=14&valueId=14
                     if (excludeValueId.equals(valueId)) {
                         // 跳出代码，后面的参数则不会继续追加【后续代码不会执行】
                         // 不能写break；如果写了break；其他条件则无法拼接！

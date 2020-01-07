@@ -349,12 +349,13 @@ public class ManageServiceImpl implements ManageService {
     }
 
     /**
+     * 热点数据查询 使用到redis缓存机制 ---》涉及到redis的缓存穿透--缓存击穿
      * 静态页面展示sku详情
-     *使用redis
+     * 使用redis
      * 解决缓存击穿
+     *
      * @param skuId
      * @return
-     * 使用redisson解决分布式锁
      */
     @Override
     public SkuInfo getSkuInfo(String skuId) {
@@ -370,11 +371,11 @@ public class ManageServiceImpl implements ManageService {
 //            if (skuJson==null || skuJson.length()==0){
 //                // 没有数据 ,需要加锁！取出完数据，还要放入缓存中，下次直接从缓存中取得即可！
 //                System.out.println("没有命中缓存");  //走数据库--getSkuInfoDB
-//                // 定义穿透锁 key  key user:userId:lock
+//                // 定义穿透锁 key  key---> user:userId:lock
 //                String skuLockKey=ManageConst.SKUKEY_PREFIX+skuId+ManageConst.SKULOCK_SUFFIX;
 //             String token = UUID.randomUUID().toString().substring(4, 6).replaceAll("-", "");
 //                // 生成锁  ManageConst.SKULOCK_SUFFIX--睡眠时间
-//                String lockKey  = jedis.set(skuLockKey, token, "NX", "PX",ManageConst.SKULOCK_SUFFIX);
+//                String lockKey  = jedis.set(skuLockKey, token, "NX", "PX",ManageConst.SKULOCK_SUFFIX);//添加完reids返回的结果就是OK
 //                if ("OK".equals(lockKey)){
 //                    System.out.println("获取锁！");
 //                    // 从数据库中取得数据
@@ -383,7 +384,7 @@ public class ManageServiceImpl implements ManageService {
 //                    // 将对象转换成字符串
 //                    String skuRedisStr = JSON.toJSONString(skuInfo);
 //                    jedis.setex(skuInfoKey,ManageConst.SKUKEY_TIMEOUT,skuRedisStr);
-                        //删除锁
+        //删除锁
 //                   String script ="if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 //                   jedis.eval(script, Collections.singletonList(skuLockKey),Collections.singletonList(token));
 //                    jedis.close();
@@ -412,31 +413,31 @@ public class ManageServiceImpl implements ManageService {
     }
 
     /**
-     *使用redisson解决分布式锁
+     * 使用redisson解决分布式锁
+     *
      * @param skuId
      * @return
      */
     private SkuInfo getSkuInfoRedisson(String skuId) {
         // 业务代码
-        SkuInfo skuInfo =null;
-        RLock lock =null;
-        Jedis jedis =null;
+        SkuInfo skuInfo = null;
+        RLock lock = null;
+        Jedis jedis = null;
         try {
 
-            // 测试redis String
             jedis = redisUtil.getJedis();
 
             // 定义key  sku:43:info
-            String userKey = ManageConst.SKUKEY_PREFIX+skuId+ManageConst.SKUKEY_SUFFIX;
-            if (jedis.exists(userKey)){
+            String userKey = ManageConst.SKUKEY_PREFIX + skuId + ManageConst.SKUKEY_SUFFIX;
+            if (jedis.exists(userKey)) {
                 // 获取缓存中的数据
                 String userJson = jedis.get(userKey);
                 //获取到数据
-                if (!StringUtils.isEmpty(userJson)){
+                if (!StringUtils.isEmpty(userJson)) {
                     skuInfo = JSON.parseObject(userJson, SkuInfo.class);
                     return skuInfo;
                 }
-            }else {
+            } else {
                 // 创建
                 //
                 // 这里使用redission
@@ -456,16 +457,16 @@ public class ManageServiceImpl implements ManageService {
                 skuInfo = getSkuInfoDB(skuId);
                 // 将数据放入缓存
                 // jedis.set(userKey,JSON.toJSONString(skuInfo));
-                jedis.setex(userKey,ManageConst.SKUKEY_TIMEOUT,JSON.toJSONString(skuInfo));
+                jedis.setex(userKey, ManageConst.SKUKEY_TIMEOUT, JSON.toJSONString(skuInfo));
                 return skuInfo;
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (jedis!=null){
+            if (jedis != null) {
                 jedis.close();
             }
-            if (lock!=null){
+            if (lock != null) {
                 lock.unlock();
             }
 
@@ -476,11 +477,12 @@ public class ManageServiceImpl implements ManageService {
 
     /**
      * 从数据库中获取数据
+     *
      * @param skuId
      * @return
      */
     private SkuInfo getSkuInfoDB(String skuId) {
-        //信息
+        //商品详情信息
         SkuInfo skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
         //获取sku的图片
         SkuImage skuImage = new SkuImage();
@@ -556,13 +558,14 @@ public class ManageServiceImpl implements ManageService {
 
     /**
      * DSL  全局查询 返回的属性值集合
+     *
      * @param attrValueIdList
      * @return
      */
     @Override
     public List<BaseAttrInfo> getAttrList(List<String> attrValueIdList) {
 
-        String valueIds  = StringUtils.join(attrValueIdList.toArray(), ",");
+        String valueIds = StringUtils.join(attrValueIdList.toArray(), ",");
         return baseAttrInfoMapper.selectAttrInfoListByIds(valueIds);
     }
 }

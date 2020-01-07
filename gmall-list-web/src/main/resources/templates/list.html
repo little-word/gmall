@@ -219,13 +219,14 @@
                                 <!--<span >¥5199.00</span>-->
                             <!--</p>-->
 
-                                <!--<a href="#" title=""  onclick="javascript:item('1')"  class="tab_JE"  >-->
+                                <!--<a href="#" title=""  onclick="'javascript:item('+${skuLsInfo.id}+'),"  class="tab_JE"  >-->
                                     <!--Apple iPhone 7 Plus (A1661) 32G 黑色 移动联通电信4G手机-->
                                 <!--</a>-->
                         <!--</div>-->
                         <div style="width:215px" th:each="skuLsInfo:${skuLsInfoList}" >
                             <p class="da">
-                                <!--th:onclick="item([[${skuLsInfo.id}]]);" |item(${skuLsInfo.id});|-->
+                                <!--th:onclick="item([[${skuLsInfo.id}]]);" |item(${skuLsInfo.id});|   onclick="'javascript:item('+${skuLsInfo.id}+')," -->
+                                <!--<a th:onclick="'javascript:item('+${skuLsInfo.id}+'),">-->
                                 <a href="#" th:onclick="|item(${skuLsInfo.id});|">
                                     <img th:src="${skuLsInfo.skuDefaultImg}"   src="img/57d0d400Nfd249af4.jpg" class="dim">
                                 </a>
@@ -234,7 +235,7 @@
                             <p class="tab_R">
                                 <span th:text="'￥'+${skuLsInfo.price}">¥5199.00</span>
                             </p>
-
+                            <!--<a th:onclick="'javascript:item('+${skuLsInfo.id}+'),">-->
                             <a href="#" title="" th:onclick="|item(${skuLsInfo.id});|" class="tab_JE" th:utext="${skuLsInfo.skuName}" >
                                 Apple iPhone 7 Plus (A1661) 32G 黑色 移动联通电信4G手机
                             </a>

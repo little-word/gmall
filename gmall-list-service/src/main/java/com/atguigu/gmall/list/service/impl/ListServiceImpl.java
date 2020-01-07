@@ -52,7 +52,7 @@ public class ListServiceImpl implements ListService {
     public void saveSkuInfo(SkuLsInfo skuLsInfo) {
 
         try {
-            //建立索引的java语句
+            //建立索引的java语句  添加index
             Index index = new Index.Builder(skuLsInfo).index(ES_INDEX).type(ES_TYPE).id(skuLsInfo.getId()).build();
 
             DocumentResult documentResult = jestClient.execute(index);
@@ -75,7 +75,7 @@ public class ListServiceImpl implements ListService {
 
         //生成 动态查询的java语句  拼接成可执行的DSL语句
 
-        //GET gmall/SkuInfo/_search{"query":{}.....}
+        //GET gmall/SkuInfo/_search{"query":{}.....}  查找search
         Search search = new Search.Builder(query).addIndex(ES_INDEX).addType(ES_TYPE).build();
 
         SearchResult searchResult = null;
@@ -89,7 +89,7 @@ public class ListServiceImpl implements ListService {
         //查询返回的结果集"hits": {
 //        "total": 2,
 //         "max_score": null,
-//         "hits": []
+//         "hits": [...]
 
         SkuLsResult skuLsResult = makeResultForSearch(skuLsParams, searchResult);
         return skuLsResult;
@@ -318,6 +318,7 @@ public class ListServiceImpl implements ListService {
                 "     \"hotScore\":"+hotScore+"\n" +
                 "   }\n" +
                 "}";
+        //更新 update
         Update update = new Update.Builder(updateJson).index(ES_INDEX).type(ES_TYPE).id(skuId).build();
 
         try {
