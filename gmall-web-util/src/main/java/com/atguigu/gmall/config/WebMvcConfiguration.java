@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * @author GPX
  * @date 2020/1/6 20:06
  */
+//拦截器配置文件
 @Configuration
 public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 

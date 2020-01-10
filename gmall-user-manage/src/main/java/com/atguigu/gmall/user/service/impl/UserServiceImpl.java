@@ -66,8 +66,9 @@ public class UserServiceImpl implements UserService {
         //给密码加密
         String password = DigestUtils.md5DigestAsHex(userInfo.getPasswd().getBytes());
         userInfo.setPasswd(password);
-        //将登陆 信息保存到reids中
 
+
+        //将登陆 信息保存到reids中
         if (info != null) {
             Jedis jedis = redisUtil.getJedis();
             jedis.setex(userKey_prefix + info.getId() + userinfoKey_suffix, userKey_timeOut, JSON.toJSONString(info));

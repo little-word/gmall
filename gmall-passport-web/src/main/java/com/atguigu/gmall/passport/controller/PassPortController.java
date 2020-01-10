@@ -32,6 +32,7 @@ public class PassPortController {
     public String index(HttpServletRequest request) {
 
         //http://passport.atguigu.com/index?originUrl=https%3A%2F%2Fwww.jd.com%2F
+        // 在AuthInterceptor 拦截的时候 拼接的originUrl
         String originUrl = request.getParameter("originUrl");
         // 保存 登录后跳转到当前 的页面
         request.setAttribute("originUrl", originUrl);
@@ -43,7 +44,7 @@ public class PassPortController {
     /**
      * 需要携带用户名 用户密码 用户id
      *
-     * @return
+     * @returne
      */
     @RequestMapping(value = "/login")
     @ResponseBody
@@ -60,6 +61,7 @@ public class PassPortController {
             map.put("userId", info.getId());
             map.put("nickName", info.getNickName());
 
+            //加密
             String token = JwtUtil.encode(signKey, map, salt); //newToken
             System.out.println("token:" + token);
             return token;

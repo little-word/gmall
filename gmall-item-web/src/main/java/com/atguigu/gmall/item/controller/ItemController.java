@@ -37,7 +37,7 @@ public class ItemController {
      * @param request
      * @return
      */
-    @LoginRequire
+    @LoginRequire(autoRedirect = false)//拦截 跳转到登录页面  在 拦截器AuthInterceptor判断是否登录 默认需要登录
     @RequestMapping("/{skuId}.html")
     public String skuInfoPage(@PathVariable(value = "skuId") String skuId, HttpServletRequest request) {
 

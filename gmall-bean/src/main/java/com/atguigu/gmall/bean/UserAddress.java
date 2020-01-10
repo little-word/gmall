@@ -20,7 +20,7 @@ public class UserAddress implements Serializable {
     private String userAddress;
     @Column
     private String userId;
-    @Column
+    @Column //收件人
     private String consignee;
     @Column
     private String phoneNum;

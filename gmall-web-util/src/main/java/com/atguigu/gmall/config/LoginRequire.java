@@ -17,6 +17,8 @@ public @interface LoginRequire {
      3、RetentionPolicy.RUNTIME：注解不仅被保存到class文件中，jvm加载class文件之后，仍然存在；
      这3个生命周期分别对应于：Java源文件(.java文件) ---> .class文件 ---> 内存中的字节码。
      * @return
+     *
+     * 是否要跳到登录页面 true需要登录 false不需要
      */
     boolean autoRedirect() default true;
 }
