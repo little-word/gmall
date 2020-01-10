@@ -1,4 +1,4 @@
-package com.atguigu.gmall.payment.util;
+package com.atguigu.gmall.util;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;

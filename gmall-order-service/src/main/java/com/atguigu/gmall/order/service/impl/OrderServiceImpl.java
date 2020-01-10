@@ -1,17 +1,27 @@
 package com.atguigu.gmall.order.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.OrderDetail;
 import com.atguigu.gmall.bean.OrderInfo;
+import com.atguigu.gmall.config.ActiveMQUtil;
+import com.atguigu.gmall.enums.ProcessStatus;
 import com.atguigu.gmall.order.mapper.OrderDetailMapper;
 import com.atguigu.gmall.order.mapper.OrderInfoMapper;
 import com.atguigu.gmall.service.OrderService;
 
 import com.atguigu.gmall.util.RedisUtil;
 import com.atguigu.gware.util.HttpclientUtil;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import redis.clients.jedis.Jedis;
 
+import javax.jms.Connection;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
 import java.util.*;
 
 /**
@@ -29,6 +39,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Autowired
+    private ActiveMQUtil activeMQUtil;
 
 
     /**
@@ -158,6 +171,159 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderInfo getOrderInfo(String orderId) {
 
-        return orderInfoMapper.selectByPrimaryKey(orderId);
+        OrderInfo orderInfo = orderInfoMapper.selectByPrimaryKey(orderId);
+        OrderDetail orderDetail = new OrderDetail();
+        orderDetail.setOrderId(orderId);
+
+        //获取订单详情
+        List<OrderDetail> orderDetailList = orderDetailMapper.select(orderDetail);
+
+        orderInfo.setOrderDetailList(orderDetailList);
+        return orderInfo;
+    }
+
+    /**
+     * 收到消息后 更新订单状态
+     * @param orderId
+     * @param processStatus
+     */
+    @Override
+    public void updateOrderStatus(String orderId, ProcessStatus processStatus) {
+        OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setId(orderId);
+        orderInfo.setProcessStatus(processStatus);
+        orderInfo.setOrderStatus(processStatus.getOrderStatus());
+        orderInfoMapper.updateByPrimaryKeySelective(orderInfo);
+    }
+
+    /**
+     * 发送消息队列
+     * @param orderId
+     */
+    @Override
+    public void sendOrderStatus(String orderId) {
+        Connection connection = activeMQUtil.getConnection();
+        //初始化库存
+        String orderJson = initWareOrder(orderId);
+        try {
+            connection.start();
+            Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
+            Queue order_result_queue = session.createQueue("ORDER_RESULT_QUEUE");
+            MessageProducer producer = session.createProducer(order_result_queue);
+
+            ActiveMQTextMessage textMessage = new ActiveMQTextMessage();
+            textMessage.setText(orderJson);
+            producer.send(textMessage);
+            session.commit();
+            session.close();
+            producer.close();
+            connection.close();
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 初始化库存量
+     * @param orderId
+     * @return
+     */
+    public String initWareOrder(String orderId) {
+
+        //将orderinfo 中需要的信息保存到map返回map
+        OrderInfo orderInfo = getOrderInfo(orderId);
+        //初始化支付后订单的方法
+        Map map = initWareOrder(orderInfo);
+        return JSON.toJSONString(map);
+    }
+
+    @Override
+    public List<OrderInfo> splitOrder(String orderId, String wareSkuMap) {
+        List<OrderInfo> subOrderInfoList = new ArrayList<>();
+        // 1 先查询原始订单
+        OrderInfo orderInfoOrigin = getOrderInfo(orderId);
+        // 2 wareSkuMap 反序列化
+        List<Map> maps = JSON.parseArray(wareSkuMap, Map.class);
+        // 3 遍历拆单方案
+        for (Map map : maps) {
+            String wareId = (String) map.get("wareId");
+            List<String> skuIds = (List<String>) map.get("skuIds");
+            // 4 生成订单主表，从原始订单复制，新的订单号，父订单
+            OrderInfo subOrderInfo = new OrderInfo();
+            BeanUtils.copyProperties(subOrderInfo,orderInfoOrigin);
+            subOrderInfo.setId(null);
+            // 5 原来主订单，订单主表中的订单状态标志为拆单
+            subOrderInfo.setParentOrderId(orderInfoOrigin.getId());
+            subOrderInfo.setWareId(wareId);
+
+            // 6 明细表 根据拆单方案中的skuids进行匹配，得到那个的子订单
+            List<OrderDetail> orderDetailList = orderInfoOrigin.getOrderDetailList();
+            // 创建一个新的订单集合
+            List<OrderDetail> subOrderDetailList = new ArrayList<>();
+            for (OrderDetail orderDetail : orderDetailList) {
+                for (String skuId : skuIds) {
+                    if (skuId.equals(orderDetail.getSkuId())){
+                        orderDetail.setId(null);
+                        subOrderDetailList.add(orderDetail);
+                    }
+                }
+            }
+            subOrderInfo.setOrderDetailList(subOrderDetailList);
+            subOrderInfo.sumTotalAmount();
+            // 7 保存到数据库中
+            saveOrder(subOrderInfo);
+            subOrderInfoList.add(subOrderInfo);
+        }
+        updateOrderStatus(orderId,ProcessStatus.SPLIT);
+        // 8 返回一个新生成的子订单列表
+        return subOrderInfoList;
+    }
+
+    // 设置初始化仓库信息方法
+    public Map initWareOrder(OrderInfo orderInfo) {
+
+        //给map赋值
+        Map<String,Object> map = new HashMap<>();
+        map.put("orderId",orderInfo.getId());
+        map.put("consignee", orderInfo.getConsignee());
+        map.put("consigneeTel",orderInfo.getConsigneeTel());
+        map.put("orderComment",orderInfo.getOrderComment());
+        //获取发送订单的信息
+        map.put("orderBody","测试库存减少");
+
+        map.put("deliveryAddress",orderInfo.getDeliveryAddress());
+        map.put("paymentWay","2");
+
+        //仓库id拆单使用
+        map.put("wareId",orderInfo.getWareId());
+
+        // 组合json OrderDetail
+        List detailList = new ArrayList();
+        List<OrderDetail> orderDetailList = orderInfo.getOrderDetailList();
+        for (OrderDetail orderDetail : orderDetailList) {
+            Map detailMap = new HashMap();
+            detailMap.put("skuId",orderDetail.getSkuId());
+            detailMap.put("skuName",orderDetail.getSkuName());
+            detailMap.put("skuNum",orderDetail.getSkuNum());
+
+            detailList.add(detailMap);
+        }
+        map.put("details",detailList);
+        return map;
+    }
+
+    /**
+     * 处理过期订单
+     * @param orderInfo
+     */
+    @Override
+    public void execExpiredOrder(OrderInfo orderInfo) {
+        updateOrderStatus(orderInfo.getId(),ProcessStatus.CLOSED);
+    }
+
+    @Override
+    public OrderInfo getOrderInfo(OrderInfo orderInfo) {
+        return orderInfoMapper.selectOne(orderInfo);
     }
 }

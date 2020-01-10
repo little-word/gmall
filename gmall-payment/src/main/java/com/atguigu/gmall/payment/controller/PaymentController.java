@@ -11,21 +11,28 @@ import com.atguigu.gmall.bean.PaymentInfo;
 import com.atguigu.gmall.config.LoginRequire;
 import com.atguigu.gmall.enums.PaymentStatus;
 import com.atguigu.gmall.payment.config.AlipayConfig;
+
 import com.atguigu.gmall.service.OrderService;
 import com.atguigu.gmall.service.PaymentService;
+import com.atguigu.gmall.util.IdWorker;
+import com.atguigu.gmall.util.StreamUtil;
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
+import com.github.wxpay.sdk.WXPayUtil;
+import com.sun.org.apache.regexp.internal.RE;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
+import java.rmi.server.UID;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author GPX
@@ -33,6 +40,10 @@ import java.util.Map;
  */
 @Controller
 public class PaymentController {
+
+    // 密钥
+    @Value("${partnerkey}")
+    private String partnerkey;
 
     @Reference
     private OrderService orderService;
@@ -116,6 +127,9 @@ public class PaymentController {
         }
         //发生的文本格式
         response.setContentType("text/html;charset=UTF-8");
+
+        //TODO 这里使用了延时队列
+
         return form;
     }
 
@@ -190,6 +204,9 @@ public class PaymentController {
                 paymentInfoUpd.setCallbackContent(paramMap.toString());
                 //支付成功 更新订单状态
                 paymentService.updatePaymentInfo(out_trade_no, paymentInfoUpd);
+
+                //使用消息队列
+                sendPaymentResult(paymentInfo,"success");
                 return "success";
             }
         }
@@ -208,5 +225,93 @@ public class PaymentController {
         boolean flag = paymentService.refund(orderId);
         System.out.println("flag:" + flag);
         return flag + "";
+    }
+    /**
+     * 微信支付
+     *
+     * @param orderId
+     * @return
+     */
+    @RequestMapping("/wx/submit")
+    @ResponseBody
+    public Map createNative(String orderId) {
+        // 做一个判断：支付日志中的订单支付状态 如果是已支付，则不生成二维码直接重定向到消息提示页面！
+        // 调用服务层数据
+        // 第一个参数是订单Id ，第二个参数是多少钱，单位是分
+
+        //根据order查paymentInfo表 找到流水号out_trade_no 将其编码成二维码
+        //orderId:"out_trade_no" -> "ATGUIGU1578635428087128"/23
+        orderId = UUID.randomUUID().toString().substring(25).replaceAll("-", "") + orderId;
+//         orderId= (String) (orderId+idWorker.nextId());
+        Map map = paymentService.createNative(orderId + "", "1");
+        System.out.println(map.get("code_url"));
+        // data = map
+        return map;
+    }
+
+    /**
+     * 微信异步回调
+     *
+     * @param request
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    public String wxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //  0 获得值
+        ServletInputStream inputStream = request.getInputStream();
+        String xmlString = StreamUtil.inputStream2String(inputStream, "utf-8");
+
+        // 1 验签
+        if (WXPayUtil.isSignatureValid(xmlString, partnerkey)) {
+            //2 判断状态
+            Map<String, String> paramMap = WXPayUtil.xmlToMap(xmlString);
+            String result_code = paramMap.get("result_code");
+            if (result_code != null && result_code.equals("SUCCESS")) {
+                // 3 更新支付状态  包发送 消息给订单
+
+                //  4  准备返回值 xml
+                HashMap<String, String> returnMap = new HashMap<>();
+                returnMap.put("return_code", "SUCCESS");
+                returnMap.put("return_msg", "OK");
+
+                String returnXml = WXPayUtil.mapToXml(returnMap);
+                response.setContentType("text/xml");
+                System.out.println("交易编号：" + paramMap.get("out_trade_no") + "支付成功！");
+                return returnXml;
+
+            } else {
+                System.out.println(paramMap.get("return_code") + "---" + paramMap.get("return_msg"));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 发送消息
+     * @param paymentInfo
+     * @param result
+     * @return
+     */
+    @RequestMapping("/sendPaymentResult")
+    @ResponseBody
+    public String sendPaymentResult(PaymentInfo paymentInfo,@RequestParam("result") String result) {
+        paymentService.sendPaymentResult(paymentInfo,result);
+        return "sent payment result";
+    }
+
+    /**
+     *
+     * 分布式事务 实现支付宝订单状态查询
+     * @param orderInfo
+     * @return
+     */
+    @RequestMapping("/queryPaymentResult")
+    @ResponseBody
+    public String queryPaymentResult(OrderInfo orderInfo){
+        OrderInfo orderInfoQuery = orderService.getOrderInfo(orderInfo);
+
+        boolean res = paymentService.checkPayment(orderInfoQuery);
+        return ""+res;
     }
 }

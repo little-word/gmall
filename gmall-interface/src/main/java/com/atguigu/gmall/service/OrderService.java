@@ -1,6 +1,10 @@
 package com.atguigu.gmall.service;
 
 import com.atguigu.gmall.bean.OrderInfo;
+import com.atguigu.gmall.enums.ProcessStatus;
+
+import java.util.List;
+import java.util.Map;
 
 public interface OrderService  {
     /**
@@ -47,4 +51,46 @@ public interface OrderService  {
      * @return
      */
     OrderInfo getOrderInfo(String orderId);
+
+    /**
+     * 收到消息后 更新订单状态
+     * @param orderId
+     * @param paid
+     */
+    void updateOrderStatus(String orderId, ProcessStatus paid);
+
+    /**
+     * 更新库存 更改订单状态 已发货
+     * @param orderId
+     */
+    void sendOrderStatus(String orderId);
+
+    /**
+     * 处理过期订单接口
+     * @param orderInfo
+     */
+    void execExpiredOrder(OrderInfo orderInfo);
+
+    /**
+     * 用于分布式事务 拆单使用
+     * 单独只针对outTradeNo,id 查询
+     * @param orderInfo
+     * @return
+     */
+    OrderInfo getOrderInfo(OrderInfo orderInfo);
+
+    /**
+     * 拆单初始化订单
+     * @param orderInfo
+     * @return
+     */
+    public Map initWareOrder(OrderInfo orderInfo);
+
+    /***
+     * 拆单
+     * @param orderId
+     * @param wareSkuMap
+     * @return
+     */
+    List<OrderInfo> splitOrder(String orderId, String wareSkuMap);
 }
