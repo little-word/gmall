@@ -23,12 +23,13 @@ import java.util.Map;
 public class PassPortController {
 
     @Value("${token.key}")
+    //ATGUIGU_GMALL_KEY
     String signKey;
 
     @Reference
     private UserService userService;
 
-    @RequestMapping("/index")
+    @RequestMapping("/index")//登录页面
     public String index(HttpServletRequest request) {
 
         //http://passport.atguigu.com/index?originUrl=https%3A%2F%2Fwww.jd.com%2F
@@ -50,7 +51,7 @@ public class PassPortController {
     @ResponseBody
     public String userLogin(UserInfo userInfo, HttpServletRequest request) {
 
-        //获取连接地址 192.168.126.1
+        //获取请求头 192.168.126.1 linux中nginx配置的"X-forwarded-for"
         String salt = request.getHeader("X-forwarded-for");
         if (userInfo != null) {
             UserInfo info = userService.login(userInfo);

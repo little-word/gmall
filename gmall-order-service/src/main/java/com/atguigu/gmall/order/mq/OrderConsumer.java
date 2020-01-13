@@ -12,7 +12,7 @@ import javax.jms.MapMessage;
 
 /**
  * 消息队列
- *
+ *消费消息
  * @author GPX
  * @date 2020/1/10 17:47
  */
@@ -28,6 +28,10 @@ public class OrderConsumer {
      * @param mapMessage
      * @throws JMSException
      */
+    //destination 监听的消息队列--session.createQueue("PAYMENT_RESULT_QUEUE"); paymentServiceImpl sendPaymentResult 方法中
+    // 在监听页面可以找到 activemq --->http:/192.168.126.129:8161
+    // containerFactory哪个工厂 在配置文件中com.atguigu.gmall.config.ActiveMQConfig
+    //  在这个bean标签中--DefaultJmsListenerContainerFactory
     @JmsListener(destination = "PAYMENT_RESULT_QUEUE", containerFactory = "jmsQueueListener")
     public void consumerPaymentResult(MapMessage mapMessage) throws JMSException {
 

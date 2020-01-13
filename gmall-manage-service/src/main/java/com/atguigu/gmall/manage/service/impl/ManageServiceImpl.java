@@ -426,7 +426,6 @@ public class ManageServiceImpl implements ManageService {
         try {
 
             jedis = redisUtil.getJedis();
-
             // 定义key  sku:43:info
             String userKey = ManageConst.SKUKEY_PREFIX + skuId + ManageConst.SKUKEY_SUFFIX;
             if (jedis.exists(userKey)) {

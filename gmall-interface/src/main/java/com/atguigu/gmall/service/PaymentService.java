@@ -35,13 +35,14 @@ public interface PaymentService {
 
     /**
      * 微信支付
-     * @param s
-     * @param s1
+     * @param orderId
+     * @param totalAmount
      * @return
      */
-    Map createNative(String s, String s1);
+    Map createNative(String orderId, String totalAmount);
 
     /**
+     * 发送支付结果给订单
      *消息中间件 消息队列的加入
      * @param paymentInfo
      * @param result

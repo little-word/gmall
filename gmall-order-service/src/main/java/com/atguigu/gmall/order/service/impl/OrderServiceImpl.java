@@ -132,8 +132,9 @@ public class OrderServiceImpl implements OrderService {
 
         String tradeCode = jedis.get(tradeNoKey);
 
+//     删除key   jedis.del(tradeNoKey);
 
-        // jedis.del(tradeNoKey);
+        // jedis.del(tradeNoKey); lua脚本
         String script ="if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
         jedis.eval(script, Collections.singletonList(tradeNoKey),Collections.singletonList(tradeCode));
 
@@ -150,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public boolean checkStock(String skuId, Integer skuNum) {
-        //校验库存 从定向到 库存项目
+        //校验库存 重定向到 库存项目 远程调用 库存管理系统的接口
         String result = HttpclientUtil.doGet("http://www.gware.com/hasStock?skuId=" + skuId + "&num=" + skuNum);
         if ("1".equals(result)){
             //有库存
@@ -253,7 +254,7 @@ public class OrderServiceImpl implements OrderService {
             OrderInfo subOrderInfo = new OrderInfo();
             BeanUtils.copyProperties(subOrderInfo,orderInfoOrigin);
             subOrderInfo.setId(null);
-            // 5 原来主订单，订单主表中的订单状态标志为拆单
+            // 5 原来主订单，订单主表中的订单状态标志为拆单 分库
             subOrderInfo.setParentOrderId(orderInfoOrigin.getId());
             subOrderInfo.setWareId(wareId);
 
@@ -263,12 +264,14 @@ public class OrderServiceImpl implements OrderService {
             List<OrderDetail> subOrderDetailList = new ArrayList<>();
             for (OrderDetail orderDetail : orderDetailList) {
                 for (String skuId : skuIds) {
+                    //这里进行拆分
                     if (skuId.equals(orderDetail.getSkuId())){
                         orderDetail.setId(null);
                         subOrderDetailList.add(orderDetail);
                     }
                 }
             }
+            //拆分的不同订单
             subOrderInfo.setOrderDetailList(subOrderDetailList);
             subOrderInfo.sumTotalAmount();
             // 7 保存到数据库中
@@ -291,7 +294,6 @@ public class OrderServiceImpl implements OrderService {
         map.put("orderComment",orderInfo.getOrderComment());
         //获取发送订单的信息
         map.put("orderBody","测试库存减少");
-
         map.put("deliveryAddress",orderInfo.getDeliveryAddress());
         map.put("paymentWay","2");
 

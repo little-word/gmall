@@ -90,6 +90,7 @@ public class OrderController {
 //        那么第二次用户用同一个页面提交的话流水号就会匹配失败，无法重复保存订单。
 
         String tradeNo = orderService.getTradeNo(userId);
+//        <input name="tradeNo" type="hidden" th:value="${tradeCode}"/>
         request.setAttribute("tradeCode", tradeNo);
         request.setAttribute("orderDetailList", orderDetailList);
 
@@ -116,7 +117,7 @@ public class OrderController {
     public String submitOrder(OrderInfo orderInfo, HttpServletRequest request) {
         //获取userId
         String userId = (String) request.getAttribute("userId");
-        //检查tradeCode
+        //检查tradeCode <input name="tradeNo" type="hidden" th:value="${tradeCode}"/>
         String tradeNo = request.getParameter("tradeNo");
         //校验流水号 订单是否已提交
         boolean flag = orderService.checkTradeCode(userId, tradeNo);
@@ -126,22 +127,23 @@ public class OrderController {
         }
 
 
-        //初始化参数 未支付
+        //提交定单 初始化参数 未支付
         orderInfo.setOrderStatus(OrderStatus.UNPAID);
         orderInfo.setProcessStatus(ProcessStatus.UNPAID);
         orderInfo.sumTotalAmount();
         orderInfo.setUserId(userId);
 
-        // 保存订单状态  //页面传过来的地址，orderInfo orderComment
+        // 保存订单状态  //页面传过来的数据：
+        // <input name="orderComment" id="orderComment" type="hidden"/>.....
         String orderId = orderService.saveOrder(orderInfo);
 
-        // 校验，验价  校验库存 OrderDetail单个订单的详细信息 表
+        // 校验，验价  校验库存 OrderDetail单个订单的详细信息 表 ordeinfo 包含 orderdetail
         List<OrderDetail> orderDetailList = orderInfo.getOrderDetailList();
         for (OrderDetail orderDetail : orderDetailList) {
-            // 从订单中去购物skuId，数量 //验证库存
+            // 从订单中去获取商品的skuId，数量 //验证库存
             boolean result = orderService.checkStock(orderDetail.getSkuId(), orderDetail.getSkuNum());
             if (!result) {
-                request.setAttribute("errMsg", "商品库存不足，请重新下单！");
+                request.setAttribute("errMsg", orderDetail.getSkuName()+"商品库存不足，请重新下单！");
                 return "tradeFail";
             }
             //验证价格

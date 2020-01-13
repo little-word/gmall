@@ -32,6 +32,6 @@ public class OrderDetail  implements Serializable{
     private Integer skuNum;
 
     @Transient
-//    如果商品在库存中有足够数据，suceess = “1”，fail=“0”
+// 验证库存   如果商品在库存中有足够数据，suceess = “1”，fail=“0”
     private String hasStock;
 }
