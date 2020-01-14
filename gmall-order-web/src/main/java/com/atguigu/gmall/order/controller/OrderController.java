@@ -6,10 +6,7 @@ import com.atguigu.gmall.bean.*;
 import com.atguigu.gmall.config.LoginRequire;
 import com.atguigu.gmall.enums.OrderStatus;
 import com.atguigu.gmall.enums.ProcessStatus;
-import com.atguigu.gmall.service.CartService;
-import com.atguigu.gmall.service.ManageService;
-import com.atguigu.gmall.service.OrderService;
-import com.atguigu.gmall.service.UserService;
+import com.atguigu.gmall.service.*;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +26,9 @@ public class OrderController {
 
     //这里产生了跨域调用 这个错误 不影响运行 调用了userService 不同的项目
     // @Autowired //在mapper中映射 default=false 忽略查询
+
+    @Reference
+    private PaymentService paymentService;
     @Reference
     private UserService userService;
 
@@ -159,6 +159,9 @@ public class OrderController {
         }
         // 删除tradeNo 删除流水号避免重复提交
         orderService.delTradeNo(userId);
+
+        //TODO 延迟队列 关闭过时订单
+        paymentService.closeOrderInfo(tradeNo,15);
         return "redirect://payment.gmall.com/index?orderId=" + orderId;
     }
 
