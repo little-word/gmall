@@ -325,9 +325,9 @@ public class PaymentController {
     @RequestMapping("/queryPaymentResult")
     @ResponseBody
     public String queryPaymentResult(OrderInfo orderInfo) {
+        // 根据orderId 查询paymentInfo 对象
         OrderInfo orderInfoQuery = orderService.getOrderInfo(orderInfo);
-
-        boolean res = paymentService.checkPayment(orderInfoQuery);
-        return "" + res;
+        boolean result = paymentService.checkPayment(orderInfoQuery);
+        return "" + result;
     }
 }

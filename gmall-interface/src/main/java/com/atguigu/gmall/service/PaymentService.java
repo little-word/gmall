@@ -51,6 +51,7 @@ public interface PaymentService {
 
     /**
      * 延迟队列 实现支付宝订单状态查询
+     * 拆单
      * @param orderInfo
      * @return
      */

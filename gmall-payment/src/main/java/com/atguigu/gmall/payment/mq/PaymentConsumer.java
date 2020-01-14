@@ -13,6 +13,7 @@ import javax.jms.MapMessage;
 
 /**
  * 接收延迟队列的消费端
+ * 拆单
  * @author GPX
  * @date 2020/1/10 19:15
  */
@@ -23,9 +24,10 @@ public class PaymentConsumer {
     private PaymentService paymentService;
     @Reference
     private OrderService orderService;
-    // 监听消息队列
+    // 监听消息队列 PAYMENT_RESULT_CHECK_QUEUE paymentServiceImpl 方法closeOrderInfo 中创建的 队列
+    //jmsQueueListener 在serviceUtil activeMQConfig 配置类中 DefaultJmsListenerContainerFactory
     @JmsListener(destination = "PAYMENT_RESULT_CHECK_QUEUE",containerFactory = "jmsQueueListener")
-    public void consumeSkuDeduct(MapMessage mapMessage) throws JMSException {
+    public void consumerCheckQueue(MapMessage mapMessage) throws JMSException {
         String outTradeNo = mapMessage.getString("outTradeNo");
 
         OrderInfo orderInfo = new OrderInfo();

@@ -51,4 +51,22 @@ public class OrderConsumer {
             orderService.updateOrderStatus(orderId,ProcessStatus.UNPAID);
         }
     }
+
+    /**
+     * 消费减库存结果
+     * 给仓库系统发送减库存消息后，还要接受减库存成功或者失败的消息。
+     * @param mapMessage
+     * @throws JMSException
+     */
+    @JmsListener(destination = "SKU_DEDUCT_QUEUE",containerFactory = "jmsQueueListener")
+    public void consumeSkuDeduct(MapMessage mapMessage) throws JMSException {
+        String orderId = mapMessage.getString("orderId");
+        String  status = mapMessage.getString("status");
+        if("DEDUCTED".equals(status)){
+            orderService.updateOrderStatus(  orderId , ProcessStatus.WAITING_DELEVER);
+        }else{
+            orderService.updateOrderStatus(  orderId , ProcessStatus.STOCK_EXCEPTION);
+        }
+    }
+
 }

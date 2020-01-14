@@ -67,7 +67,7 @@ public class OrderInfo implements Serializable {
     private List<OrderDetail> orderDetailList;
 
 
-    @Transient
+    @Transient //库存id对接库存系统
     private String wareId;
 
     @Column//第三方支付编号
